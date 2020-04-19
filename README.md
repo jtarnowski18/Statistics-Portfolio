@@ -29,6 +29,61 @@ UHHHH idk
 
 The code that I have posted in my repository shows that I have a fluency in R. I have shown on numerous occasions I am able to conduct every process I need to to complete a project. I also have gained a familiarity with java from taking a computer science class.
 
-2.Translate a data analytic problem into a set of computational steps, and show how they work in real data.
+2. Translate a data analytic problem into a set of computational steps, and show how they work in real data.
 
-If you look in my other repository their is a 
+If you look in my other repository their is a SP500-TimeSeries_Analysis repositoty with a stock market analysis project inside. For this project I had the idea to reoraganize the sectors of companies in the SP 500 by past growing patterns instead of industry. From heare I attempted to predict each new sectors outcome for the next quarter. While this started as an idea and a dataset I went through each step neccsesary to complete with project. The code and paper in this repository show this in detail.
+
+3. Set up and run a Monte Carlo or simulation study to investigate a problem.
+
+In my probability models class we dove deep into Monte Carlo simulations. For our final project we were tasked with building a simulation that would predict world series winners given their win percentage of each year. The point of this project was to see if the Chicago Cubs 106 year drought was by chance, or if they were actually a very poor organization. I posted the code of for this simulation in this repository under the name _______.
+
+4. Import, clean, and appropriately format data from a variety of sources.
+
+In my graduate time series analyis class we were given a homework where there were numerous different file types we had to work with. For each file we were tasked with cleaning and running an anaylsis and explaining our analysis. I have posted this homework in the repository under the name ________.
+
+## **Goal #3 Mathematical Foundations**
+
+1. Demonstrate knowledge of integration and differentiation.
+
+Completed Calculus I and Calculus II.
+
+2. Demonstrate knowledge of linear algebra (emphasis on matrix manipulations, linear transformations, projections in Euclidean space, eigenvalue/eigenvector decomposition, and singular value decomposition)
+
+Completed Linear Algebra.
+
+3. Demonstrate knowledge of probability (emphasis on conditional probability and independence, random variables, functions and sums of random variables, moment-generating functions, Markov chains and other probability models, Monte Carlo methods, and applications of conditional probability).
+
+Completed Probability Models and MathStats I.
+
+## **Goal #4 Statistical Practice and Problem Solving**
+
+1. Present the findings of a data analytic project, demonstrating writing, speaking, and presentation skills.
+
+
+
+2. Plan and collaborate with others on a project designed to answer a disciplinary question using real data.
+
+Since the start of my career I have worked with a group of students at St. John Fisher College who served as the data analytics division for the Rochester Knighthawks. While I did not do too much on the coding end of things, I served several different roles on this team. I was consistantly pitching new ideas to everyone else, and I was responsible for tracking data weekly during the lacrosse season. This was a different experiance for me. Usually I am the one coding and leading the project, but with this group I was able to be more of and idea generator and a person who was able to give input to others opinions.
+
+3. Outcome 4.3 Demonstrate competence with using multiple models and methods for addressing a question in real data, and draw appropriate conclusions.
+
+In my Predictive Modleing class (STAT 345) we were tasked with compeleting a project that consisted of building multiple models for data of our choice. For my project I attempted to build a model that would precict a voters vote given the 2016 election data set. For this project I chose to build a KNN model and a catagorical decision tree model to attempt to model this simulation. As a result of this project I confirmed the rather obvious, that the vote is largely dependent on the voters party affiliation. You can find this project in this repository under the name _________.
+
+## **Goal #5 Discipline-Specific Knowledge**
+- Students will become familiar with a disciplinary field of inquiry, demonstrate competence with the quantitative methods used in that field, and apply statistical reasoning to disciplinary questions and problems from that field.
+
+1. Acquire a minor or second major in a discipline that uses quantitative research methods.
+
+I am also an economics major as well.
+
+2. Render a disciplinary research question or problem in statistical and computational terms.
+
+See Goal 2 section 2.
+
+3. Conduct a project that addresses a disciplinary question with real data from that field.
+
+See Goal 2 section 2.
+
+
+
+
