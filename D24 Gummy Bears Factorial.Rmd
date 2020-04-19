@@ -1,0 +1,68 @@
+---
+title: "Gummy Bears (Factorial) - In class"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(data.table)
+require(mosaic)
+require(lmPerm)
+rm(list=ls())
+```
+
+```{r prep}
+inputfile <- "http://citadel.sjfc.edu/faculty/ageraci/data/GummyBears2018.csv"
+
+df <- fread(inputfile) %>%
+  mutate(Blocks = factor(Blocks, labels = c("1", "5", "9")),
+         LaunchLoc = factor(Ramp, labels = c("Top", "Bottom")))
+str(df)
+```
+### Descriptive Statistics  
+```{r}
+mean(~Distance | Blocks + LaunchLoc, data=df)
+```
+### Interaction Plot
+```{r plot}
+#Note that we us the type " option to get an interation plot
+#Blocks and groups must be FACTOR variables
+xyplot(Distance~Blocks, group = LaunchLoc, data = df[which(df$Group=="D"),], auto.key = list(columns = 2, lines =  TRUE , points = FALSE), type = "a")
+```
+###Tests
+```{r tests}
+shapiro.test(df$Distance)
+```
+ Because we got a very low p-value we can conclude our data is not normal distributed.
+```{r}
+bartlett.test(Distance ~ Blocks, data = df)
+bartlett.test(Distance ~ LaunchLoc, data = df)
+```
+
+## ANOVA - Simple Two-way
+```{r}
+aovp(Distance~ Blocks + LaunchLoc, data = df)-> dist.m
+summary(dist.m)
+```
+## ANOVA - with Interaction
+```{r}
+aovp(Distance~ Blocks * LaunchLoc, data = df)-> inter.m
+summary(inter.m)
+```
+## ANOVA - with Interaction (blocked by Group)
+```{r}
+aovp(Distance ~ Group + (Blocks * LaunchLoc), data = df)-> inter.n
+summary(inter.n)
+```
+
+## Post-Hoc on above ANOVA
+
+
+
+```{r}
+t<-TukeyHSD(inter.n)
+t
+```
+Blocked Factorial Design 3x2
