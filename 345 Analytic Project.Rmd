@@ -1,0 +1,261 @@
+---
+title: "345 Analytic project"
+author: "Jacob Tarnowski"
+date: "November 21, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+set.seed(2018)
+require(mosaic)
+require(MASS)
+require(car)
+require(dplyr)
+require(ISLR)
+require(caret)
+require(rattle)
+rm(list=ls())
+```
+
+#Section 1: Introduction
+
+For this modelling project, I decided to use the ANES Time Series Data (2016 election data)  to attempt to predict how strongly people felt about President Donald Trump prior to the 2016 presidential election.  This data contains the answers to hundreds of survey questions and hundreds of observations. This independent variable I chose is measured on a scale of 0 - 100 where a 0 indicates a very bad feeling about Trump and a 100 indicates a very good feeling. This variable was measured by asking people how they would rate Trump on a scale of 0 to 100. For my predictors, I largely choose variables that had to do with the economy because prior to the election the thought that Trump would stimulate the economy was quite popular. One variable showed what people thought of the economy's progression in the past 12 months. I included this variable because I thought that if people were unhappy with the economy in the past year they are more likely to believe Trump could better it, causing them to feel better about him. Another variable I chose measured the people thoughts on unemployment in the past year. I chose this variable because the stigma that Trump would stimulate this economy would lead some people to believe that unemployment will be lower. The next variable I decided to use shows what people believe in terms of which party is better at handling the economy. I decided to include this variable because I thought if people believe that Republicans handle the economy better then they will most likely feel better about trump and vice versa if they are a democrat. The next variable I selected was explained whether a person was ever angry with Obama during his administration. I selected this variable because I believe that if people were upset with Obama that they would most likely feel better about Trump because they were they have very different plans from one another. Another variable I decided to include was the working status because if someone is unemployed they are most likely feeling frustrated with the economy and will be more likely to believe Trump can improve it with his background. The next variable I chose was showed the peoples perspectives on the income gap. I selected this variable because the if people believe the income gap is larger than it was 20 years ago than they are most likely going to feel good about Trump because the stigma he would improve the economy lead people to believe that the income gap would decrease. I also wanted to include the gender variable to see the interaction between the income gap and gender because the income gap between genders is an issue that many people believe in. Lastly, I chose to include the variable that measured the average number of hours worked by the subject in a week because Trump appealed to the blue collar workers very well (who typically work more hours) which should give them a better feeling about Trump. Overall I believe that we will see that people perception of the economy dictated their feelings about Trump.
+
+#Section 2: Preprocessing
+
+# Description of Data
+
+   For this analysis I am using the ANES 2016 Election Dataset. I was fisrst provided with this dataset in this class so I did not have to dig throught the internet to find it. This dataset has a sample set of 4271 subjects and has a total of  1290 variables. This dataset contains almost every bit of information of you could ask for when studying the 2016 election. It contains every type of variable, but I will mostly be using factor varibables that have to do with the election.
+   
+```{r Load in the Data}
+df <- read.table("P:/STAT 210/anes_timeseries_2016_rawdata.txt", header=TRUE, sep="|")
+names(df)[names(df) == 'V161087'] <- 'Trump'
+names(df)[names(df) == 'V161141'] <- 'econ_state'
+names(df)[names(df) == 'V161142'] <- 'unemployment_state'
+names(df)[names(df) == 'V161144'] <- 'econ_party'
+names(df)[names(df) == 'V161236'] <- 'Obama_feeling'
+names(df)[names(df) == 'V161277'] <- 'working_status'
+names(df)[names(df) == 'V161342'] <- 'gender'
+names(df)[names(df) == 'V161137'] <- 'income_gap'
+
+df<-df%>%
+  dplyr::select(Trump, econ_state, unemployment_state, 
+         econ_party, Obama_feeling, working_status, 
+         gender, income_gap)
+```
+
+
+
+#### Independent Variable
+```{r Trump}
+#How do you feel about Trump?
+df$Trump[df$Trump<0] <- NA # 0 = strongly dislike | 100 = stronly like
+```
+
+
+#### Dependent Variables
+
+```{r econ_state}
+#Has the economy gotten better or worse in the past year?
+
+df$econ_state[df$econ_state == -8] <- NA
+df$econ_state[df$econ_state == -9] <- NA
+df$econ_state <- recode(df$econ_state, "3=0; 2=1; 1=2")
+# 0 Worse
+# 1 About the Same
+# 2 Better
+```
+
+```{r unemployment_state}
+#Has unemployment gotten better or worse in the past year?
+
+df$unemployment_state[df$unemployment_state == -8] <- NA
+df$unemployment_state[df$unemployment_state == -9] <- NA
+df$unemployment_state<- recode(df$unemployment_state, "3=0; 2=1; 1=2")
+# 0 Worse
+# 1 About the Same
+# 2 Better
+```
+
+```{r econ_party}
+#Which party will handle the economy better?
+
+df$econ_party <- as.factor(df$econ_party)
+df$econ_party[df$econ_party == -8] <- NA
+df$econ_party[df$econ_party == -9] <- NA
+df$econ_party[df$econ_party == 4]<- NA
+df$econ_party<- recode(df$econ_party, "3=0;2=1;1=2")
+
+# 0 No difference
+# 1 Republicans
+# 2 Democrats
+
+```
+
+```{r Obama_feeling}
+#How often were you angry at President Obama?
+
+df$Obama_feeling[df$Obama_feeling < 0] <- NA
+df$Obama_feeling <- recode(df$Obama_feeling, "1=0;2=1;3=2;4=3;5=4")
+# 0 Never angry
+# 1 Sometimes angry
+# 2 About half the time angry
+# 3 Mostly angry
+# 4 Always angry
+```
+
+```{r working_status}
+#Current occupational status
+
+df$working_status <- as.factor(df$working_status)
+df$working_status[df$working_status == -8] <- NA
+df$working_status[df$working_status == -9] <- NA
+df$working_status<- recode(df$working_status, "8=0;7=1;6=2;5=3;4=4;2=5;1=6")
+# 0 Student
+# 1 Homemaker
+# 2 Perm. disabled
+# 3 Retired
+# 4 Unemployed
+# 5 Temp. laidoff
+# 6 Working
+```
+
+```{r gender}
+#Identified gender
+
+df$gender<- as.factor(df$gender)
+df$gender[df$gender == -8] <- NA
+df$gender[df$gender == -9] <- NA
+df$gender[df$gender == 3] <- NA
+df$gender <- recode(df$gender, "2=0;1=1")
+# 0 Female
+# 1 Male
+```
+
+```{r income_gap}
+#Is the income gap today larger or samller than it was 20 years ago?
+
+df$income_gap[df$income_gap == -8] <- NA
+df$income_gap[df$income_gap == -9] <- NA
+df$income_gap <- recode(df$income_gap, "2=0;3=1;1=2")
+
+# 0 Smaller
+# 1 About the same
+# 2 Larger
+```
+
+```{r}
+df<- na.omit(df)
+```
+
+
+```{r}
+lm<-lm(Trump~ econ_state + unemployment_state + econ_party + Obama_feeling + working_status + gender*income_gap, data=df)
+influenceIndexPlot(lm, vars=c("Cook"), id=5)
+```
+
+
+```{r correlation matrix}
+```
+
+  The first thing I did in the preprocessing section of this analysis was rename the varibles so that their names made sense. Then I used the select command to make a data frame of just the data I wanted. Next I recode the varibles so they were listed as the variable type that I wanted them to be in, and so that the numerical representations of the survey answers made sense. I also removed some data from the data frame to put more of the spotlight on the other possible answers. For example I removed the niether party answers from the econ_party variable to put more influence on the Democratic vs. Republican relationship. I also removed the other catagory from gender to put more emphasis on Male vs. Female. After that I checked for outliers or influencial data with a influence index plot. These plots showed me that there were no observations that I should be concerned about or consider removing. Then I ran a correlation matrix to examine if there were any variables that were highly correlated. The results of this matrix showed me that there aren't correlations high enough to be worried about or worth changing my data for. Lastly, to deal with the high number of NA's in the data, I just decided to remove them from the data. Once I removed the NA's from the data I realized that I only had 261 observations that could be used in my model. Then I was realized this was cause by the massive number of missing data in the hours_worked variables, so I decided to go back at remove that variable as well. After completing this preprocessing I felt that my data was clean enough to begin working with.
+  
+#Section 3: EDA
+
+```{r}
+summary(df)
+plot(Trump~econ_state + unemployment_state + econ_party + Obama_feeling + working_status + gender*income_gap, data = df)
+```
+
+  From these plots and statisics it appears thats that there are some outliers in the data, however that is to be expected. There are going to be some people who really like Trump and then there will be some people who will really dislike them. I expected to see this in the econ_party box plot because it is the variable that I predicted to best show the bipartisanship in our government. As I predicted this plot had the most outliers. While the majority of people who this the Republicans will handle the economy better liked Trump, there were a few who still disliked Trump. Then it was exactly opposite for people who thought the democrats would handle the economy better, the majority disliked him, then there were a few who liked Trump. As I stated earlier in the preprocessing section of this project, when I run a correlation matrix on my data frame there are not any correlations between varibales that I should worry about.
+
+#Section 4: Model Fitting and Analysis
+##Knn Model
+
+```{r}
+new=createDataPartition(y=df$Trump,p=.7,list=FALSE)
+train=df[new,]
+test=df[-new,]
+dim(train); dim(test)
+anyNA(train)
+tc=trainControl(method="boot",number=20)
+knnfit=train(Trump~ econ_state + unemployment_state + econ_party + Obama_feeling + working_status + gender*income_gap, data=train, method="knn",
+                trControl=tc,
+                preProcess=c("center","scale"),
+                tuneLength=10)
+knnfit
+
+```
+
+### Data partitioning and why it is to build good models
+
+  For the data partitioning
+
+### Tuning parameters and how they work
+
+  For the Knn model the value of k is the tuning parameter. The value of k is equal to the number of observations that surround a given point that will average together to a prediction. If we choose a too small k we are not making the most accurate model as possible, but on the other hand if we choose to large of a k then we will overfit the model to the data. In order to avoid both of these situations I let R pick the best tuninng parameter for my model.
+
+### Model fit statistics
+
+  The RMSE for my Knn model is 18.65, which is relativly high considering the dependent variable is evaluated on a scale that ranges on zero to one hundred. This means that this model will make very inaccurate preditions.  Another model fit statisic provided by the Knn output is the R-squared value. The R-squared value is the amount of variance in the dependent variable that is explained by the model. Because the computed R-squared value was .52 for this decision tree model, it is correct to say that the model explains 52% of the variation in the dependent variable. Considering that this is survey data, a R-squared value of .52 is considered very good.
+
+### Predicted Values
+
+```{r}
+#I hate the predict command
+#predict(knnfit, data.frame(econ_state = min(df$econ_state), unemployment_state = #min(df$unemployment_state), econ_party = 1, Obama_feeling = max(df$Obama_feeling), #working_status = 3, gender = 0, income_gap = min(df$income_gap), hours_worked = #max(df$hours_worked)))
+
+#predict(knnfit, data.frame(econ_state = max(df$econ_state), unemployment_state = #max(df$unemployment_state), econ_party = 2, Obama_feeling = min(df$Obama_feeling), #working_status = 0, gender = 1, income_gap = max(df$income_gap), hours_worked = 0))
+```
+
+
+##Decisision Tree model
+```{r}
+tc1 <- trainControl(method="cv", number = 6)
+fit=train(Trump ~  econ_state + unemployment_state + econ_party + Obama_feeling + working_status + gender*income_gap,method="rpart",trControl=tc1, data=train) 
+fit
+fancyRpartPlot(fit$finalModel)
+```
+
+### Data partitioning and why it is to build good models
+
+  The method of data partition in I used in this model is the six-fold cross validation method
+
+
+### Tuning parameters and how they work
+
+  For the decision tree model I the tuning parameter is the size of the tree, and this is represented by the cp (cross-complexity). The only thing that the cp does is control the size of the tree, so that the optimal size tree is reached. If the Tree is too big then the model is subject to over fitting the data, but if it is too small it is subject to under performing. I decided to let R choose the cp value for this model, and from my model output it appears that it chose the best value.
+
+### Model fit statistics
+
+  The RMSE for my decision tree model is 25.42, which is relativly very high considering the dependent variable is evaluated on a scale that ranges on zero to one hundred. This tells me that my model is severally inaccurate. Another model fit statisic provided by the decision tree model output is the R-squared value. The R-squared value is the amount of variance in the dependent variable that is explained by the model. Because the computed R-squared value was .47 for this decision tree model, it is correct to say that the model explains 47% of the variation in the dependent variable. Considering that this is survey data, a R-squared value of .47 is considered very good.
+
+### Predicted Values
+
+```{r}
+#I hate the predict command
+predict(fit, data.frame("econ_state" = 0, "unemployment_state" = 0, "econ_party" = 1, "Obama_feeling" = 0, "working_status" = 6, "gender" = 0, "income_gap" = 0))
+
+predict(fit, data.frame(econ_state = 2, unemployment_state = max(df$unemployment_state), econ_party = 2, Obama_feeling = min(df$Obama_feeling), working_status = 0, gender = 1, income_gap = max(df$income_gap), hours_worked = 0))
+```
+
+
+  
+
+#Section 5: Summary
+  
+  By constructing and running these models I have found out a great deal of information about the dependent variable, the Trump feeling thermometer. A lot of what I learned was from the decision tree model. Althought the plot isn't very helpful and is difficult to interpret, it shows most of the Trump feeling thermometer is determined by what politcal party the subject thought would handle the economy better. If we make the very realistic assumption that most people answered the same political party as the one they are a part of this shows that how the feeling about Trump is largly based on the political party of the subject. The Knn model did not give me any helpful insights, however, it was a much more reliable model. The Knn model had a lower RMSE and a larger R-squared so all it all around out performed the decision tree. The R-squared values for these models were also very high for survey data, but we also have to take into consideration RMSE's that esscentially tell us that neither of the models are accurate at all. In the end I would not recommend using these models to anyone just because they are not accurate enough.
+  
+  I found many limitations when working with this data. One of the limitation that was most appaent was the scales that they uses. When using the data that were measured with scales I had to assume the change in feeling from one level to the next equal to the change in feeling between all levels. I would have liked to see the survey have at least a few more options at least so there was not as big of a change in feeling inbetween variables, and making the data more percisely show the feelings of the subjects. I would have also like there to be a variable that measure how many hours worked in a week that was not missing about 94% of the data. I thought that this would have been an interesting variable to include because the generalization is that blue collar workers work more hours than white collar workers, and prior to the election the majority of blue collar workers supported Trump. I also would have liked to see a variable that showed the fincancial status of the subject to see how that would have effect the Trump feeling thermometer. I also could have tested to see how the interaction between hours worked in a week and financial status to see its impact on the independent variable. Overall though I thought this data set was fairly helpful and included a vast amount of interesting variables.
+  
+  
+```{r}
+# Questions for Rob
+#correlation matrix
+#predict commands
+#data partitioning
+#predictors performance
+```
+
+
